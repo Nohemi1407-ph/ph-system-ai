@@ -22,7 +22,7 @@ const SCROLLBAR_STYLE = `
 // ── Icons ────────────────────────────────────────────────────────────────────
 
 const CheckSvg = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="4">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b00ff" strokeWidth="4">
     <polyline points="20 6 9 17 4 12" />
   </svg>
 );
@@ -252,6 +252,7 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
   const [dropdown, setDropdown] = useState(null); // 'format' | 'avatar' | 'ratio' | 'res' | 'duration'
   const [uploadProgress, setUploadProgress] = useState({ product: 0, avatar: 0, additional: 0 });
   const [fullscreenUrl, setFullscreenUrl] = useState(null);
+  const [videoErrors, setVideoErrors] = useState({});
 
   const textareaRef = useRef(null);
 
@@ -284,7 +285,10 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
 
   const downloadFile = async (url, filename) => {
     try {
-      const response = await fetch(url);
+      // Proxy del servidor para evitar CORS en URLs de CDN
+      const proxyUrl = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+      const response = await fetch(proxyUrl);
+      if (!response.ok) throw new Error("proxy error");
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -371,40 +375,137 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
       {/* ── MAIN CONTENT AREA ── */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pb-40">
         {history.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in-up">
-            {history.map(entry => (
-              <div key={entry.id} className="relative group rounded-lg overflow-hidden border border-white/10 bg-[#0a0a0a] shadow-xl hover:border-primary/50 transition-all duration-300 flex flex-col">
-                <video 
-                  src={entry.url} 
-                  className="w-full aspect-video object-cover cursor-pointer hover:opacity-80 transition-opacity" 
-                  onClick={() => setFullscreenUrl(entry.url)}
-                  muted loop onMouseOver={e => e.target.play()} onMouseOut={e => { e.target.pause(); e.target.currentTime = 0; }}
-                />
-                
-                {/* Actions Overlay */}
-                <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                   <button
-                    onClick={(e) => { e.stopPropagation(); downloadFile(entry.url, `marketing-ad-${entry.id}.mp4`); }}
-                    className="p-2 bg-black/60 backdrop-blur-md rounded-full text-white hover:bg-primary hover:text-black transition-all border border-white/10"
-                    title="Download"
-                   >
-                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                       <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-                     </svg>
-                   </button>
+          <div className="flex flex-col gap-8 animate-fade-in-up">
+
+            {/* ── Video destacado (el más reciente) ── */}
+            <div className="w-full max-w-2xl mx-auto">
+              <div className="relative rounded-xl overflow-hidden border border-primary/30 bg-black shadow-2xl">
+
+                {/* Video o estado de error */}
+                {videoErrors[history[0].url] ? (
+                  /* El URL expiró o no carga — mostrar opciones */
+                  <div className="aspect-video flex flex-col items-center justify-center bg-[#0a0a0a] gap-4 p-6">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#8b00ff" strokeWidth="1.5" opacity="0.5">
+                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <p className="text-white/40 text-sm text-center">El enlace del video expiró.</p>
+                    <a
+                      href={history[0].url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-lg text-primary text-xs font-bold hover:bg-primary/20 transition-colors"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      Intentar abrir directamente
+                    </a>
+                  </div>
+                ) : (
+                  <video
+                    key={history[0].url}
+                    src={history[0].url}
+                    className="w-full aspect-video object-contain bg-black"
+                    controls
+                    autoPlay
+                    playsInline
+                    preload="auto"
+                    onError={() => setVideoErrors(p => ({ ...p, [history[0].url]: true }))}
+                  />
+                )}
+
+                {/* Badge "Más reciente" */}
+                <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 bg-primary/90 rounded-full text-[10px] font-black text-black tracking-wider uppercase shadow-lg">
+                  <div className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
+                  Último generado
                 </div>
 
-                <div className="p-3 bg-black/80 backdrop-blur-sm border-t border-white/5 flex flex-col gap-1.5 flex-1">
-                  <p className="text-white/60 text-[10px] line-clamp-2 leading-relaxed font-medium">{entry.prompt}</p>
-                  <div className="flex items-center justify-between mt-auto">
-                    <span className="text-[9px] font-black text-primary px-2 py-0.5 bg-primary/10 rounded border border-primary/20 uppercase tracking-tighter">
-                      {entry.format}
-                    </span>
-                    <span className="text-[9px] text-white/30 font-bold">{new Date(entry.timestamp).toLocaleDateString()}</span>
+                {/* Botones acción */}
+                <div className="absolute top-3 right-3 flex items-center gap-2">
+                  <a
+                    href={history[0].url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-black/70 backdrop-blur-md rounded-lg text-white text-[11px] font-bold border border-white/10 hover:bg-white/20 transition-all"
+                    title="Abrir en nueva pestaña"
+                  >
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    Ver
+                  </a>
+                  <button
+                    onClick={() => downloadFile(history[0].url, `marketing-ad-${history[0].id}.mp4`)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/90 backdrop-blur-md rounded-lg text-black text-[11px] font-bold hover:bg-primary transition-all"
+                  >
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                    </svg>
+                    Descargar
+                  </button>
+                </div>
+
+                {/* Info */}
+                <div className="p-3 bg-black/80 border-t border-white/5">
+                  {history[0].prompt && (
+                    <p className="text-white/60 text-xs line-clamp-2 mb-1">{history[0].prompt}</p>
+                  )}
+                  <div className="flex items-center gap-2">
+                    {history[0].format && (
+                      <span className="text-[9px] font-black text-primary px-2 py-0.5 bg-primary/10 rounded border border-primary/20 uppercase tracking-tighter">
+                        {history[0].format}
+                      </span>
+                    )}
+                    <span className="text-[9px] text-white/30">{new Date(history[0].timestamp).toLocaleDateString('es-ES')}</span>
                   </div>
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* ── Historial de generaciones anteriores ── */}
+            {history.length > 1 && (
+              <div>
+                <p className="text-white/30 text-xs font-bold uppercase tracking-widest mb-3 px-1">Anteriores</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {history.slice(1).map(entry => (
+                    <div
+                      key={entry.id}
+                      className="relative group rounded-lg overflow-hidden border border-white/[0.07] bg-[#0a0a0a] hover:border-primary/40 transition-all duration-200 cursor-pointer"
+                      onClick={() => setFullscreenUrl(entry.url)}
+                    >
+                      {/* Thumbnail con frame visible */}
+                      <div className="relative aspect-video bg-black overflow-hidden">
+                        <video
+                          src={entry.url}
+                          className="w-full h-full object-cover"
+                          muted
+                          playsInline
+                          preload="metadata"
+                          onLoadedMetadata={e => { e.target.currentTime = 0.5; }}
+                          onMouseOver={e => e.target.play()}
+                          onMouseOut={e => { e.target.pause(); e.target.currentTime = 0.5; }}
+                        />
+                        {/* Play overlay siempre visible */}
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/20 transition-colors">
+                          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center pl-0.5 border border-white/20 group-hover:scale-110 group-hover:bg-primary/80 transition-all">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                          </div>
+                        </div>
+                        {/* Botón descargar al hover */}
+                        <button
+                          onClick={e => { e.stopPropagation(); downloadFile(entry.url, `marketing-ad-${entry.id}.mp4`); }}
+                          className="absolute top-1.5 right-1.5 p-1.5 bg-black/70 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary border border-white/10"
+                        >
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="p-2 border-t border-white/5">
+                        <p className="text-white/40 text-[10px] line-clamp-1">{entry.prompt}</p>
+                        <span className="text-[9px] text-white/20">{new Date(entry.timestamp).toLocaleDateString('es-ES')}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="h-full flex flex-col items-center justify-center animate-fade-in-up transition-all duration-700">
@@ -412,7 +513,7 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
                 <div className="absolute inset-0 bg-primary/10 blur-[120px] rounded-full opacity-30 group-hover:opacity-60 transition-opacity duration-1000" />
                 <div className="relative w-24 h-24 md:w-32 md:h-32 bg-white/[0.02] rounded-[2rem] flex items-center justify-center border border-white/[0.05] overflow-hidden backdrop-blur-sm">
                   <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center border border-primary/10 relative z-10 transition-transform duration-500 group-hover:scale-110 shadow-inner">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" strokeWidth="1.5">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8b00ff" strokeWidth="1.5">
                       <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
                       <line x1="8" y1="21" x2="16" y2="21" />
                       <line x1="12" y1="17" x2="12" y2="21" />
@@ -591,9 +692,46 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
 
       {/* Fullscreen Preview */}
       {fullscreenUrl && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm animate-fade-in" onClick={() => setFullscreenUrl(null)}>
-          <button className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white border border-white/10 transition-colors shadow-2xl"><CloseSvg /></button>
-          <video src={fullscreenUrl} controls autoPlay className="max-w-[95vw] max-h-[95vh] rounded-lg shadow-4xl animate-scale-up" onClick={e => e.stopPropagation()} />
+        <div
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 backdrop-blur-sm animate-fade-in"
+          onClick={() => setFullscreenUrl(null)}
+        >
+          {/* Barra superior */}
+          <div
+            className="w-full flex items-center justify-between px-6 py-4 border-b border-white/[0.06] flex-shrink-0"
+            onClick={e => e.stopPropagation()}
+          >
+            <span className="text-white/50 text-sm font-semibold">Vista previa</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => downloadFile(fullscreenUrl, `marketing-ad-${Date.now()}.mp4`)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary rounded-lg text-black text-xs font-bold hover:bg-primary/80 transition-colors"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+                Descargar
+              </button>
+              <button
+                onClick={() => setFullscreenUrl(null)}
+                className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white border border-white/10 transition-colors"
+              >
+                <CloseSvg />
+              </button>
+            </div>
+          </div>
+          {/* Video */}
+          <div className="flex-1 flex items-center justify-center p-6 w-full min-h-0" onClick={e => e.stopPropagation()}>
+            <video
+              key={fullscreenUrl}
+              src={fullscreenUrl}
+              controls
+              autoPlay
+              playsInline
+              className="max-w-full max-h-full rounded-xl shadow-2xl"
+              style={{ maxHeight: 'calc(100vh - 120px)' }}
+            />
+          </div>
         </div>
       )}
     </div>

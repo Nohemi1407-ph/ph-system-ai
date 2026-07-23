@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ImageStudio, VideoStudio, LipSyncStudio, CinemaStudio, MarketingStudio, WorkflowStudio, AgentStudio, AppsStudio, getUserBalance } from 'studio';
 import axios from 'axios';
 import ApiKeyModal from './ApiKeyModal';
+import StorageStudio from './StorageStudio';
 
 const TABS = [
   { id: 'image',   label: 'Image Studio' },
@@ -15,6 +16,7 @@ const TABS = [
   { id: 'workflows', label: 'Workflows' },
   { id: 'agents', label: 'Agents' },
   { id: 'apps', label: 'Explore Apps' },
+  { id: 'storage', label: 'Mis Archivos' },
 ];
 
 const STORAGE_KEY = 'muapi_key';
@@ -104,24 +106,32 @@ export default function StandaloneShell() {
     }
   }, [activeTab]);
 
-  const fetchBalance = useCallback(async (key) => {
-    try {
-      const data = await getUserBalance(key);
-      setBalance(data.balance);
-    } catch (err) {
-      console.error('Balance fetch failed:', err);
+  const fetchBalance = useCallback(async (key, retries = 3, delay = 2000) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const data = await getUserBalance(key);
+        setBalance(data.balance ?? data.credits ?? null);
+        return;
+      } catch (err) {
+        const is404 = err?.message?.includes('404');
+        if (is404 && i < retries - 1) {
+          // Ruta aún compilando en dev mode — esperar y reintentar
+          await new Promise(r => setTimeout(r, delay));
+        } else if (!is404) {
+          // Error real (sin créditos, key inválida) — no reintentar
+          break;
+        }
+      }
     }
   }, []);
 
   useEffect(() => {
     setHasMounted(true);
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      setApiKey(stored);
-      fetchBalance(stored);
-      // Sync cookie immediately on mount to establish identity for background requests
-      document.cookie = `muapi_key=${stored}; path=/; max-age=31536000; SameSite=Lax`;
-    }
+    const stored = localStorage.getItem(STORAGE_KEY) || 'ph-system-internal';
+    localStorage.setItem(STORAGE_KEY, stored);
+    setApiKey(stored);
+    fetchBalance(stored);
+    document.cookie = `muapi_key=${stored}; path=/; max-age=31536000; SameSite=Lax`;
   }, [fetchBalance]);
 
   const handleKeySave = useCallback((key) => {
@@ -209,7 +219,7 @@ export default function StandaloneShell() {
 
   if (!hasMounted) return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-      <div className="animate-spin text-[#22d3ee] text-3xl">◌</div>
+      <div className="animate-spin text-[#8b00ff] text-3xl">◌</div>
     </div>
   );
 
@@ -218,25 +228,31 @@ export default function StandaloneShell() {
   }
 
   return (
-    <div 
-      className="h-screen bg-[#030303] flex flex-col overflow-hidden text-white relative"
+    <div
+      className="h-screen bg-[#050505] flex flex-col overflow-hidden text-white relative"
       onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      {/* Ambient glow — futuristic atmosphere */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[1px] bg-gradient-to-r from-transparent via-[#8b00ff]/60 to-transparent" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-32 bg-[#8b00ff]/5 blur-3xl rounded-full" />
+      </div>
+
       {/* Drag Overlay */}
       {isDragging && (
-        <div className="fixed inset-0 z-[100] bg-[#22d3ee]/10 backdrop-blur-md border-4 border-dashed border-[#22d3ee]/50 flex items-center justify-center pointer-events-none transition-all duration-300">
-          <div className="bg-[#0a0a0a] p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col items-center gap-4 scale-110 animate-pulse">
-            <div className="w-20 h-20 bg-[#22d3ee] rounded-2xl flex items-center justify-center">
+        <div className="fixed inset-0 z-[100] bg-[#8b00ff]/10 backdrop-blur-md border-4 border-dashed border-[#8b00ff]/50 flex items-center justify-center pointer-events-none transition-all duration-300">
+          <div className="bg-[#0a0a0a] p-8 rounded-3xl border border-[#8b00ff]/20 shadow-2xl flex flex-col items-center gap-4 scale-110 animate-pulse">
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center" style={{background:'linear-gradient(135deg,#fff,#8b00ff)'}}>
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
               </svg>
             </div>
             <div className="flex flex-col items-center">
-              <span className="text-xl font-bold text-white">Drop your media here</span>
-              <span className="text-sm text-white/40">Images, videos, or audio files</span>
+              <span className="text-xl font-bold text-white">Suelta tu archivo aquí</span>
+              <span className="text-sm text-white/40">Imágenes, videos o audio</span>
             </div>
           </div>
         </div>
@@ -244,54 +260,73 @@ export default function StandaloneShell() {
 
       {/* Header */}
       {isHeaderVisible && (
-        <header className="flex-shrink-0 h-14 border-b border-white/[0.03] flex items-center justify-between px-6 bg-black/20 backdrop-blur-md z-40">
+        <header className="relative flex-shrink-0 h-14 border-b border-[#8b00ff]/10 flex items-center justify-between px-6 bg-black/40 backdrop-blur-md z-40">
+          {/* Top border glow */}
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#8b00ff]/40 to-transparent" />
+
           {/* Left: Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-              </svg>
+          <div className="flex items-center gap-3">
+            {/* Isotipo SVG — PH System AI */}
+            <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="phGrad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#ffffff"/>
+                  <stop offset="100%" stopColor="#8b00ff"/>
+                </linearGradient>
+              </defs>
+              {/* Outer rounded square */}
+              <rect x="4" y="4" width="92" height="92" rx="22" fill="url(#phGrad)"/>
+              {/* Inner black to create letter shape */}
+              <rect x="16" y="16" width="68" height="68" rx="14" fill="#050505"/>
+              {/* Top arc / P shape */}
+              <path d="M28 28 h22 a14 14 0 0 1 0 28 h-22 z" fill="url(#phGrad)"/>
+              {/* Bottom bar */}
+              <rect x="28" y="62" width="44" height="10" rx="5" fill="url(#phGrad)"/>
+              {/* Right vertical accent */}
+              <rect x="66" y="56" width="10" height="16" rx="4" fill="#8b00ff"/>
+            </svg>
+
+            <div className="hidden sm:flex flex-col leading-none">
+              <span className="text-[13px] font-black tracking-widest text-white uppercase">PH System</span>
+              <span className="text-[10px] font-bold tracking-[0.2em] bg-gradient-to-r from-white to-[#8b00ff] bg-clip-text text-transparent uppercase">AI</span>
             </div>
-            <span className="text-sm font-bold tracking-tight hidden sm:block">OpenGenerativeAI</span>
           </div>
 
           {/* Center: Navigation */}
-          <nav className="absolute left-1/2 -translate-x-1/2 flex items-center gap-6">
+          <nav className="absolute left-1/2 -translate-x-1/2 flex items-center gap-5">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
                 className={`relative py-4 text-[13px] font-medium transition-all whitespace-nowrap px-1 ${
                   activeTab === tab.id
-                    ? 'text-[#22d3ee]'
-                    : 'text-white/50 hover:text-white'
+                    ? 'text-[#8b00ff]'
+                    : 'text-white/40 hover:text-white/80'
                 }`}
               >
                 {tab.label}
                 {activeTab === tab.id && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#22d3ee] rounded-full" />
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full" style={{background:'linear-gradient(90deg,#fff,#8b00ff)'}} />
                 )}
               </button>
             ))}
           </nav>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-full border border-white/5 transition-colors">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-white/90">
-                  ${balance !== null ? `${balance}` : '---'}
-                </span>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-[#8b00ff]/10 px-3 py-1.5 rounded-full border border-[#8b00ff]/20 transition-colors">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#8b00ff] animate-pulse shadow-[0_0_6px_#8b00ff]" />
+              <span className="text-xs font-bold text-white/90">
+                ${balance !== null ? `${balance}` : '---'}
+              </span>
             </div>
 
             <button
               onClick={() => setShowSettings(true)}
-              title="Settings — API key, local models, preferences"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-white/10 bg-white/5 text-[13px] font-bold text-white/80 hover:text-white hover:bg-white/10 hover:border-white/20 transition-colors"
+              title="Configuración"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-[#8b00ff]/20 bg-[#8b00ff]/5 text-[13px] font-bold text-white/70 hover:text-white hover:bg-[#8b00ff]/15 hover:border-[#8b00ff]/40 transition-colors"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="3" />
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </svg>
@@ -302,7 +337,7 @@ export default function StandaloneShell() {
       )}
 
       {/* Studio Content */}
-      <div className="flex-1 min-h-0 relative overflow-hidden">
+      <div className="flex-1 min-h-0 relative overflow-hidden z-10">
         {activeTab === 'image'   && <ImageStudio   apiKey={apiKey} droppedFiles={droppedFiles} onFilesHandled={handleFilesHandled} />}
         {activeTab === 'video'   && <VideoStudio   apiKey={apiKey} droppedFiles={droppedFiles} onFilesHandled={handleFilesHandled} />}
         {activeTab === 'lipsync' && <LipSyncStudio apiKey={apiKey} droppedFiles={droppedFiles} onFilesHandled={handleFilesHandled} />}
@@ -311,23 +346,27 @@ export default function StandaloneShell() {
         {activeTab === 'workflows' && <WorkflowStudio apiKey={apiKey} isHeaderVisible={isHeaderVisible} onToggleHeader={setIsHeaderVisible} />}
         {activeTab === 'agents' && <AgentStudio apiKey={apiKey} isHeaderVisible={isHeaderVisible} onToggleHeader={setIsHeaderVisible} />}
         {activeTab === 'apps' && <AppsStudio apiKey={apiKey} />}
+        {activeTab === 'storage' && <StorageStudio />}
       </div>
 
       {/* Settings Modal */}
       {showSettings && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in-up">
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-8 w-full max-w-sm shadow-2xl">
-            <h2 className="text-white font-bold text-lg mb-2">Settings</h2>
-            <p className="text-white/40 text-[13px] mb-8">
-              Manage your AI studio preferences and authentication.
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[#080808] border border-[#8b00ff]/20 rounded-2xl p-8 w-full max-w-sm shadow-2xl shadow-[#8b00ff]/10">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-1 h-5 rounded-full" style={{background:'linear-gradient(180deg,#fff,#8b00ff)'}} />
+              <h2 className="text-white font-black text-lg tracking-tight">Configuración</h2>
+            </div>
+            <p className="text-white/30 text-[13px] mb-8 pl-4">
+              PH System AI — Preferencias y autenticación.
             </p>
-            
+
             <div className="space-y-4 mb-8">
-              <div className="bg-white/5 border border-white/[0.03] rounded-md p-4">
-                <label className="block text-xs font-bold text-white/30 mb-2">
-                   Active API Key
+              <div className="bg-[#8b00ff]/5 border border-[#8b00ff]/15 rounded-xl p-4">
+                <label className="block text-xs font-bold text-[#8b00ff]/60 mb-2 tracking-widest uppercase">
+                  API Key activa
                 </label>
-                <div className="text-[13px] font-mono text-white/80">
+                <div className="text-[13px] font-mono text-white/70">
                   {apiKey.slice(0, 8)}••••••••••••••••
                 </div>
               </div>
@@ -336,15 +375,15 @@ export default function StandaloneShell() {
             <div className="flex gap-3">
               <button
                 onClick={handleKeyChange}
-                className="flex-1 h-10 rounded-md bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-all"
+                className="flex-1 h-10 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs font-bold transition-all border border-red-500/10"
               >
-                Change Key
+                Cambiar Key
               </button>
               <button
                 onClick={() => setShowSettings(false)}
-                className="flex-1 h-10 rounded-md bg-white/5 text-white/80 hover:bg-white/10 text-xs font-semibold transition-all border border-white/5"
+                className="flex-1 h-10 rounded-xl bg-[#8b00ff]/10 text-white/70 hover:bg-[#8b00ff]/20 text-xs font-bold transition-all border border-[#8b00ff]/15"
               >
-                Close
+                Cerrar
               </button>
             </div>
           </div>

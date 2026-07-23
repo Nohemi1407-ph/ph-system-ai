@@ -14,14 +14,16 @@ body {
 }
 
 :root {
-  --color-primary: #22d3ee;
-  --bg-app: #030303;
+  --color-primary: #8b00ff;
+  --color-primary-light: #b44fff;
+  --bg-app: #050505;
   --bg-panel: #0a0a0a;
-  --bg-card: #111111;
-  --border-color: rgba(255,255,255,0.05);
+  --bg-card: #0d0d0d;
+  --border-color: rgba(139,0,255,0.08);
   --border-radius-xl: 0.75rem;
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(139,0,255,0.03);
+  --glass-border: rgba(139,0,255,0.12);
+  --glow: 0 0 20px rgba(139,0,255,0.25);
 }
 
 .glass-panel {
@@ -32,10 +34,77 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(139,0,255,0.25); border-radius: 2px; }
 
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-in-up { animation: fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* ── PH System AI — Purple glow system ─────────────────────────────────── */
+
+/* Text glow on purple accent text */
+.text-\[#8b00ff\] {
+  text-shadow: 0 0 12px rgba(139, 0, 255, 0.7);
+}
+
+/* Glow on solid purple buttons/backgrounds */
+.bg-\[#8b00ff\] {
+  box-shadow: 0 0 18px rgba(139, 0, 255, 0.55), 0 0 6px rgba(139, 0, 255, 0.3);
+}
+
+/* Soft glow on purple borders */
+.border-\[#8b00ff\] {
+  box-shadow: 0 0 8px rgba(139, 0, 255, 0.3);
+}
+
+/* Glow on purple/violet rings (focus states) */
+.ring-\[#8b00ff\],
+.ring-purple-500,
+.ring-purple-600 {
+  --tw-ring-color: rgba(139, 0, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(139, 0, 255, 0.25), 0 0 12px rgba(139, 0, 255, 0.3);
+}
+
+/* Glow on animated pulse dots */
+.bg-\[#8b00ff\].animate-pulse {
+  box-shadow: 0 0 0 4px rgba(139, 0, 255, 0.15), 0 0 14px rgba(139, 0, 255, 0.5);
+}
+
+/* Progress bars and underlines in purple */
+.bg-\[#8b00ff\]\/20,
+.bg-purple-600\/20,
+.bg-purple-500\/20 {
+  box-shadow: 0 0 10px rgba(139, 0, 255, 0.2);
+}
+
+/* Scrollbar track glow */
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 0, 255, 0.3);
+  border-radius: 4px;
+  box-shadow: 0 0 6px rgba(139, 0, 255, 0.4);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 0, 255, 0.55);
+}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Gradient text utility */
+.ph-gradient-text {
+  background: linear-gradient(90deg, #ffffff, #8b00ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Futuristic scan-line overlay (optional, very subtle) */
+@keyframes ph-pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+.ph-glow-pulse {
+  animation: ph-pulse-glow 2s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(139, 0, 255, 0.6);
+}

@@ -1,31 +1,30 @@
 import { NextResponse } from 'next/server';
 
+const PUBLIC_PATHS = ['/access', '/api/access'];
+
 export function middleware(request) {
-    const url = request.nextUrl;
-    
-    // Catch requests to /api/workflow, /api/app, and /api/v1
-    const isMuApi = url.pathname.startsWith('/api/workflow') || 
-                    url.pathname.startsWith('/api/app') || 
-                    url.pathname.startsWith('/api/v1');
+  const { pathname } = request.nextUrl;
 
-    if (isMuApi) {
-        // Remap /api/v1 ONLY if it's not handled by a specific route.
-        // Actually, we'll let existing remapping for /api/v1 stay if needed,
-        // but we'll remove app/workflow as they need special handling.
-        if (url.pathname.startsWith('/api/v1')) {
-            const targetUrl = new URL(url.pathname + url.search, 'https://api.muapi.ai');
-            return NextResponse.rewrite(targetUrl);
-        }
-    }
+  // Rutas públicas y assets — no requieren acceso
+  const isPublic =
+    PUBLIC_PATHS.some((p) => pathname.startsWith(p)) ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/favicon') ||
+    pathname.match(/\.(ico|png|jpg|jpeg|svg|webp|css|js|woff2?)$/);
 
-    return NextResponse.next();
+  if (isPublic) return NextResponse.next();
+
+  // Verificar cookie de acceso
+  const accessCookie = request.cookies.get('ph_access');
+  if (!accessCookie || accessCookie.value !== '1407_granted') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/access';
+    return NextResponse.redirect(url);
+  }
+
+  return NextResponse.next();
 }
 
-// Match the paths we want to proxy
 export const config = {
-    matcher: [
-        '/api/workflow/:path*', 
-        '/api/app/:path*',
-        '/api/v1/:path*'
-    ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };

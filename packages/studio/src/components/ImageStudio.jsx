@@ -661,7 +661,7 @@ function ModelDropdown({ models, selectedModel, onSelect, onClose }) {
               <div
                 className={`w-10 h-10 ${
                   m.family === "kontext"
-                    ? "bg-blue-500/10 text-blue-400"
+                    ? "bg-purple-600/10 text-purple-400"
                     : m.family === "effects"
                       ? "bg-purple-500/10 text-purple-400"
                       : "bg-primary/10 text-primary"
@@ -681,7 +681,7 @@ function ModelDropdown({ models, selectedModel, onSelect, onClose }) {
                 height="16"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#22d3ee"
+                stroke="#8b00ff"
                 strokeWidth="4"
               >
                 <polyline points="20 6 9 17 4 12" />
@@ -722,7 +722,7 @@ function SimpleDropdown({ title, options, selected, onSelect, onClose }) {
                 height="16"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#22d3ee"
+                stroke="#8b00ff"
                 strokeWidth="4"
               >
                 <polyline points="20 6 9 17 4 12" />
@@ -1255,10 +1255,10 @@ export default function ImageStudio({
                   }}
                   className="flex items-center gap-2 px-3 py-2 bg-white/[0.03] hover:bg-white/[0.06] rounded-md transition-all border border-white/[0.03] group whitespace-nowrap"
                 >
-                  <div className="w-4 h-4 bg-[#22d3ee] rounded flex items-center justify-center">
+                  <div className="w-4 h-4 bg-[#8b00ff] rounded flex items-center justify-center">
                     <span className="text-[9px] font-bold text-black uppercase">G</span>
                   </div>
-                  <span className="text-xs font-semibold text-white/70 group-hover:text-[#22d3ee] transition-colors">
+                  <span className="text-xs font-semibold text-white/70 group-hover:text-[#8b00ff] transition-colors">
                     {selectedModelName}
                   </span>
                   <svg
@@ -1303,7 +1303,7 @@ export default function ImageStudio({
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="opacity-40 text-white">
                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                   </svg>
-                  <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#22d3ee] transition-colors">
+                  <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#8b00ff] transition-colors">
                     {selectedAr}
                   </span>
                 </button>
@@ -1338,7 +1338,7 @@ export default function ImageStudio({
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="opacity-40 text-white">
                       <path d="M6 2L3 6v15a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6z" />
                     </svg>
-                    <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#22d3ee] transition-colors">
+                    <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#8b00ff] transition-colors">
                       {selectedQuality || currentResolutions[0]}
                     </span>
                   </button>
@@ -1374,7 +1374,7 @@ export default function ImageStudio({
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="opacity-40 text-white">
                       <path d="M5 3l14 9-14 9V3z" />
                     </svg>
-                    <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#22d3ee] transition-colors max-w-[140px] truncate">
+                    <span className="text-[11px] font-semibold text-white/70 group-hover:text-[#8b00ff] transition-colors max-w-[140px] truncate">
                       {selectedEffect || "Effect"}
                     </span>
                   </button>
@@ -1405,7 +1405,7 @@ export default function ImageStudio({
                     onClick={() => setBatchSize(num)}
                     className={`w-7 h-7 flex items-center justify-center rounded-md text-[10px] font-black transition-all ${
                       batchSize === num
-                        ? "bg-[#22d3ee] text-black shadow-lg shadow-[#22d3ee]/20"
+                        ? "bg-[#8b00ff] text-black shadow-lg shadow-[#8b00ff]/20"
                         : "text-white/40 hover:text-white/80 hover:bg-white/5"
                     }`}
                   >
@@ -1420,7 +1420,7 @@ export default function ImageStudio({
               type="button"
               onClick={handleGenerate}
               disabled={generating}
-              className="bg-[#22d3ee] text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-[#e5ff33] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[#22d3ee]/10 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+              className="bg-[#8b00ff] text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-[#e5ff33] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg shadow-[#8b00ff]/10 disabled:opacity-50 disabled:cursor-not-allowed z-10"
             >
               {generating ? (
                 <>
