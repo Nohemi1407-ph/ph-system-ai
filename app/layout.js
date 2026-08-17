@@ -1,19 +1,19 @@
 import './globals.css';
-import { Inter } from "next/font/google";
+import { Inter } from 'next/font/google';
 
 const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+  variable: '--font-inter',
+  subsets: ['latin'],
 });
 
 export const metadata = {
-  title: 'Open Generative AI — Free AI Image & Video Studio',
-  description: 'Generate AI images and videos using 200+ models — Flux, Midjourney, Kling, Veo, Seedance and more.',
+  title: 'PH System AI — TikTok Shop Engine',
+  description: 'Un producto + un avatar → videos con estructura de venta, listos para TikTok Shop.',
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body className={inter.variable}>{children}</body>
     </html>
   );
