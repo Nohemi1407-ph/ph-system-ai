@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ImageStudio, VideoStudio, LipSyncStudio, CinemaStudio, MarketingStudio, WorkflowStudio, AgentStudio, AppsStudio, getUserBalance } from 'studio';
 import axios from 'axios';
@@ -83,6 +83,14 @@ export default function StandaloneShell() {
         }
     }
   }, [slug, getWorkflowInfo]);
+
+  // En pantallas estrechas la barra scrollea; sin esto la pestaña activa
+  // puede quedar fuera de vista y parece que no estas en ninguna.
+  const navRef = useRef(null);
+  useEffect(() => {
+    const activo = navRef.current?.querySelector('[data-activo="true"]');
+    activo?.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }, [activeTab]);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
@@ -298,10 +306,11 @@ export default function StandaloneShell() {
               Ocupa el hueco entre logo y acciones en vez de ir centrada en
               absoluto: con 10 pestañas, el centrado absoluto se montaba encima
               del logo y de Settings. Si no caben, la barra scrollea. */}
-          <nav className="mx-4 flex min-w-0 flex-1 items-center justify-center gap-5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <nav ref={navRef} className="mx-4 flex min-w-0 flex-1 items-center justify-center gap-5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
+                data-activo={activeTab === tab.id}
                 onClick={() => handleTabChange(tab.id)}
                 className={`relative py-4 text-[13px] font-medium transition-all whitespace-nowrap px-1 ${
                   activeTab === tab.id
