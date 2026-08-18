@@ -77,6 +77,42 @@ export const t2vModels = [
 
 export const i2vModels = [
   {
+    id: 'seedance-2-mini',
+    name: 'Seedance 2.0 Mini · el más barato',
+    endpoint: 'bytedance/seedance-2-mini',
+    maxImages: 9,
+    inputs: {
+      prompt: { name: 'prompt', title: 'Prompt', type: 'string', description: 'Describe el video.' },
+      aspect_ratio: { name: 'aspect_ratio', title: 'Aspect Ratio', type: 'string', enum: ['adaptive','1:1','4:3','3:4','16:9','9:16','21:9'], default: 'adaptive' },
+      resolution: { name: 'resolution', title: 'Resolution', type: 'string', enum: ['480p','720p'], default: '480p' },
+      duration: { name: 'duration', title: 'Duration', type: 'number', enum: Array.from({length:12},(_,i)=>i+4), default: 5 },
+    },
+  },
+  {
+    id: 'seedance-2-fast',
+    name: 'Seedance 2.0 Fast · barato',
+    endpoint: 'bytedance/seedance-2-fast',
+    maxImages: 9,
+    inputs: {
+      prompt: { name: 'prompt', title: 'Prompt', type: 'string', description: 'Describe el video.' },
+      aspect_ratio: { name: 'aspect_ratio', title: 'Aspect Ratio', type: 'string', enum: ['adaptive','1:1','4:3','3:4','16:9','9:16','21:9'], default: 'adaptive' },
+      resolution: { name: 'resolution', title: 'Resolution', type: 'string', enum: ['480p','720p'], default: '720p' },
+      duration: { name: 'duration', title: 'Duration', type: 'number', enum: Array.from({length:12},(_,i)=>i+4), default: 5 },
+    },
+  },
+  {
+    id: 'seedance-2-5',
+    name: 'Seedance 2.5 · el mejor (y el más caro)',
+    endpoint: 'bytedance/seedance-2-5',
+    maxImages: 30,
+    inputs: {
+      prompt: { name: 'prompt', title: 'Prompt', type: 'string', description: 'Describe el video.' },
+      aspect_ratio: { name: 'aspect_ratio', title: 'Aspect Ratio', type: 'string', enum: ['adaptive','1:1','4:3','3:4','16:9','9:16','21:9'], default: 'adaptive' },
+      resolution: { name: 'resolution', title: 'Resolution', type: 'string', enum: ['480p','720p','1080p'], default: '720p' },
+      duration: { name: 'duration', title: 'Duration', type: 'number', enum: Array.from({length:27},(_,i)=>i+4), default: 5 },
+    },
+  },
+  {
     id: 'veo3-fast-i2v',
     name: 'Veo 3.1 Fast · desde imagen',
     endpoint: 'veo3_fast',
