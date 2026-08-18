@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { uploadFile, generateMarketingStudioAd } from "../muapi.js";
+// Marketing Studio corre sobre Kie, la misma cuenta que el resto del sistema.
+import { uploadFile, generateMarketingStudioAd } from "../kie.js";
 
 const SCROLLBAR_STYLE = `
   .custom-scrollbar-thin::-webkit-scrollbar {
@@ -249,6 +250,7 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
 
   const [history, setHistory] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [estadoGeneracion, setEstadoGeneracion] = useState(null);
   const [dropdown, setDropdown] = useState(null); // 'format' | 'avatar' | 'ratio' | 'res' | 'duration'
   const [uploadProgress, setUploadProgress] = useState({ product: 0, avatar: 0, additional: 0 });
   const [fullscreenUrl, setFullscreenUrl] = useState(null);
@@ -332,14 +334,15 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
     if (!productImage) return alert("Please upload a product image.");
 
     setIsGenerating(true);
+    setEstadoGeneracion('En cola…');
     try {
       const result = await generateMarketingStudioAd(apiKey, {
-        prompt,
+        prompt: params.format ? `${prompt}\n\nAd format / style: ${params.format}.` : prompt,
         aspect_ratio: params.ratio,
         duration: params.duration,
         resolution: params.res,
         images_list: [productImage, avatarImage, ...additionalImages].filter(Boolean),
-        video_files: params.videoUrl ? [params.videoUrl] : []
+        onEstado: ({ mensaje }) => setEstadoGeneracion(mensaje),
       });
 
       if (result?.url) {
@@ -357,6 +360,7 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
       alert("Generation failed: " + err.message);
     } finally {
       setIsGenerating(false);
+      setEstadoGeneracion(null);
     }
   };
 
@@ -680,7 +684,7 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
               {isGenerating ? (
                 <>
                   <div className="w-3 h-3 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                  Generating...
+                  <span className="max-w-[280px] truncate">{estadoGeneracion || 'Generating...'}</span>
                 </>
               ) : (
                 <span>Launch</span>
