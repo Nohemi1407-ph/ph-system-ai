@@ -59,6 +59,73 @@ export function uploadFile(_apiKey, file, onProgress) {
   });
 }
 
+/** Lanza un modelo del catalogo y espera el resultado. */
+async function correrModelo(modeloId, params = {}) {
+  const { jobId } = await pedir('/api/kie/generate', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ modelo: modeloId, params }),
+  });
+
+  params.onRequestId?.(jobId);
+
+  const limite = Date.now() + ESPERA_MAX_MS;
+  let intento = 0;
+
+  while (Date.now() < limite) {
+    await new Promise((r) => setTimeout(r, intervalo(intento++)));
+    const job = await pedir(`/api/kie/job/${jobId}`);
+    params.onEstado?.({ mensaje: job.mensaje });
+
+    if (job.estado === 'terminado' && job.url) {
+      // Se devuelven las dos formas porque los studios leen unas u otras.
+      return { url: job.url, urls: job.urls || [job.url], output: job.url };
+    }
+    if (job.estado === 'error') throw new Error(job.mensaje || 'La generación falló.');
+  }
+
+  throw new Error('Se agotó el tiempo de espera. El trabajo puede seguir corriendo: recarga en unos minutos.');
+}
+
+/** Catalogo de modelos disponibles, para que la interfaz pinte sus opciones. */
+export async function getKieModels() {
+  return pedir('/api/kie/models');
+}
+
+// ─── Superficie que usan los studios ─────────────────────────────────────────
+// Mismos nombres y misma firma que las funciones de muapi.js que sustituyen,
+// para que los studios no tengan que reescribirse.
+
+export function generateImage(_apiKey, params) {
+  return correrModelo(params.model || 'nano-banana', params);
+}
+
+export function generateI2I(_apiKey, params) {
+  return correrModelo(params.model || 'nano-banana-edit', params);
+}
+
+export function generateVideo(_apiKey, params) {
+  return correrModelo(params.model || 'veo3-fast', params);
+}
+
+export function generateI2V(_apiKey, params) {
+  return correrModelo(params.model || 'veo3-fast-i2v', params);
+}
+
+export function processV2V(_apiKey, params) {
+  return correrModelo(params.model || 'wan-v2v', params);
+}
+
+export function processLipSync(_apiKey, params) {
+  return correrModelo(params.model || 'lipsync-volcengine', params);
+}
+
+/** Saldo de la cuenta de Kie, en creditos. */
+export async function getUserBalance() {
+  const r = await pedir('/api/kie/balance');
+  return { balance: r.creditos, credits: r.creditos };
+}
+
 /**
  * Genera el anuncio. Lanza el trabajo y sondea hasta que termina.
  *

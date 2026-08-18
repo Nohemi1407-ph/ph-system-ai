@@ -9,4 +9,7 @@ export { default as WorkflowStudio } from './components/WorkflowStudio';
 export { default as AgentStudio } from './components/AgentStudio';
 export { default as AppsStudio } from './components/AppsStudio';
 export { default as McpCliStudio } from './components/McpCliStudio';
-export * from './muapi';
+// Todo el software genera a traves de Kie. muapi.js se conserva sin exportar
+// por si hiciera falta consultar el contrato viejo.
+export * from './kie';
+export * from './kieModels';

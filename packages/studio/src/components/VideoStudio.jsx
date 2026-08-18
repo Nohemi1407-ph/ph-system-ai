@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { generateVideo, generateI2V, processV2V, uploadFile } from "../muapi.js";
+import { generateVideo, generateI2V, processV2V, uploadFile } from "../kie.js";
 import {
   t2vModels,
   i2vModels,
@@ -15,7 +15,7 @@ import {
   getEffectsForI2VModel,
   getDefaultEffectForI2VModel,
   getModesForModel,
-} from "../models.js";
+} from "../kieModels.js";
 
 // ── tiny helpers ──────────────────────────────────────────────────────────────
 

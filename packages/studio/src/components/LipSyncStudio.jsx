@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { processLipSync, uploadFile } from "../muapi.js";
+import { processLipSync, uploadFile } from "../kie.js";
 import {
   lipsyncModels,
   imageLipSyncModels,
   videoLipSyncModels,
   getLipSyncModelById,
   getResolutionsForLipSyncModel,
-} from "../models.js";
+} from "../kieModels.js";
 
 // ---------------------------------------------------------------------------
 // Upload button states
