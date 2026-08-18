@@ -1,10 +1,7 @@
-import TikTokShopClient from './TikTokShopClient';
+import { redirect } from 'next/navigation';
 
-export const metadata = {
-  title: 'TikTok Shop Studio — PH System AI',
-  description: 'Genera videos de TikTok Shop con avatar y producto, con estructura de venta probada.',
-};
-
+// TikTok vive dentro del dashboard, como una pestaña mas.
+// Esta ruta se conserva solo para que los enlaces viejos sigan funcionando.
 export default function TikTokPage() {
-  return <TikTokShopClient />;
+  redirect('/studio/tiktok');
 }

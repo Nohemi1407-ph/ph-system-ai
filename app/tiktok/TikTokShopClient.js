@@ -366,7 +366,7 @@ function PanelConocimiento({ conocimiento, onActualizar }) {
 
 // ─── Página ──────────────────────────────────────────────────────────────────
 
-export default function TikTokShopClient() {
+export default function TikTokShopClient({ embebido = false }) {
   const [meta, setMeta] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [productoUrl, setProductoUrl] = useState(null);
@@ -535,13 +535,19 @@ export default function TikTokShopClient() {
   const campo = 'w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white placeholder-zinc-600 outline-none focus:border-violet-500/60';
 
   return (
-    <div className="min-h-screen bg-[#050505] px-5 py-8 text-white">
+    // Embebido = dentro del dashboard, que ya pone fondo y cabecera propios.
+    // Suelto = pagina completa. Mismo componente, sin duplicar la vista.
+    <div className={embebido ? 'px-5 py-6 text-white' : 'min-h-screen bg-[#050505] px-5 py-8 text-white'}>
       <div className="mx-auto max-w-6xl">
         <header className="mb-8">
-          <h1 className="text-2xl font-bold">TikTok Shop Studio</h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            Avatar + producto → videos con estructura de venta, listos para subir.
-          </p>
+          {!embebido && (
+            <>
+              <h1 className="text-2xl font-bold">TikTok Shop Studio</h1>
+              <p className="mt-1 text-sm text-zinc-500">
+                Avatar + producto → videos con estructura de venta, listos para subir.
+              </p>
+            </>
+          )}
           {meta && !meta.llm?.configurado && (
             <p className="mt-3 rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
               Falta la llave del modelo de texto ({meta.llm?.proveedor}). Agrégala en las variables de entorno.
