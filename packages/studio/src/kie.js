@@ -143,6 +143,7 @@ export async function generateMarketingStudioAd(_apiKey, params) {
       resolution: params.resolution || '1080p',
       duration: params.duration || 5,
       images_list: params.images_list || [],
+      video_files: params.video_files || [],
     }),
   });
 

@@ -31,6 +31,7 @@ export async function POST(request) {
     resolution: resolucion = '1080p',
     duration: duracion = 5,
     images_list: imagenes = [],
+    video_files: videos = [],
   } = body;
 
   if (!prompt?.trim()) {
@@ -78,6 +79,7 @@ export async function POST(request) {
     resolucion,
     duracion: segundos,
     imagenes,
+    videos,
   }).catch((e) => console.error('[Marketing] generarAnuncio:', e.message));
 
   return NextResponse.json({

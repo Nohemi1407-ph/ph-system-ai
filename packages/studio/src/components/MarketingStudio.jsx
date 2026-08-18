@@ -342,6 +342,9 @@ export default function MarketingStudio({ apiKey, droppedFiles, onFilesHandled }
         duration: params.duration,
         resolution: params.res,
         images_list: [productImage, avatarImage, ...additionalImages].filter(Boolean),
+        // Seedance 2.5 acepta video de referencia: la plantilla UGC vuelve a
+        // usarse de verdad, no solo como indicación de estilo en el prompt.
+        video_files: params.videoUrl ? [params.videoUrl] : [],
         onEstado: ({ mensaje }) => setEstadoGeneracion(mensaje),
       });
 
