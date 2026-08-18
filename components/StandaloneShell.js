@@ -267,7 +267,7 @@ export default function StandaloneShell() {
           <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#8b00ff]/40 to-transparent" />
 
           {/* Left: Logo */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-shrink-0 items-center gap-3">
             {/* Isotipo SVG — PH System AI */}
             <svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -294,8 +294,11 @@ export default function StandaloneShell() {
             </div>
           </div>
 
-          {/* Center: Navigation */}
-          <nav className="absolute left-1/2 -translate-x-1/2 flex items-center gap-5">
+          {/* Center: Navigation
+              Ocupa el hueco entre logo y acciones en vez de ir centrada en
+              absoluto: con 10 pestañas, el centrado absoluto se montaba encima
+              del logo y de Settings. Si no caben, la barra scrollea. */}
+          <nav className="mx-4 flex min-w-0 flex-1 items-center justify-center gap-5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
@@ -315,7 +318,7 @@ export default function StandaloneShell() {
           </nav>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-shrink-0 items-center gap-3">
             <div className="flex items-center gap-2 bg-[#8b00ff]/10 px-3 py-1.5 rounded-full border border-[#8b00ff]/20 transition-colors">
               <div className="w-1.5 h-1.5 rounded-full bg-[#8b00ff] animate-pulse shadow-[0_0_6px_#8b00ff]" />
               <span className="text-xs font-bold text-white/90">
