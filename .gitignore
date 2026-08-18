@@ -36,3 +36,6 @@ out/
 .env
 .env.*
 !.env.example
+
+# Jobs y cache local: nunca al repositorio (es publico)
+.data

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import { firmaDeAcceso, igualSeguro } from './lib/acceso';
 
 const PUBLIC_PATHS = ['/access', '/api/access'];
 
-export function middleware(request) {
+export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
   // Rutas públicas y assets — no requieren acceso
@@ -14,9 +15,11 @@ export function middleware(request) {
 
   if (isPublic) return NextResponse.next();
 
-  // Verificar cookie de acceso
+  // La cookie ya no es un texto fijo escrito en el repositorio (que es
+  // publico), sino una firma hecha con un secreto del servidor. Ver
+  // app/api/access/route.js.
   const accessCookie = request.cookies.get('ph_access');
-  if (!accessCookie || accessCookie.value !== '1407_granted') {
+  if (!accessCookie || !igualSeguro(accessCookie.value, await firmaDeAcceso())) {
     const url = request.nextUrl.clone();
     url.pathname = '/access';
     return NextResponse.redirect(url);
